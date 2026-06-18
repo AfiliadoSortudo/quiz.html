@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Quiz do Homem Trevo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: #080808;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .quiz-container {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: #0d0d0d;
+  }
+
+  /* TELA */
+  .tela {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 0;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .tela.ativa { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* HERO SECTION */
+  .hero {
+    background: radial-gradient(ellipse at 50% 110%, rgba(0,220,80,0.22) 0%, transparent 65%),
+                radial-gradient(ellipse at 90% 0%, rgba(0,255,100,0.07) 0%, transparent 50%),
+                #0d0d0d;
+    padding: 56px 32px 40px;
+    text-align: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 32px; right: 32px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,255,100,0.2), transparent);
+  }
+
+  .mascot {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,255,100,0.12), rgba(0,255,100,0.02));
+    border: 1.5px solid rgba(0,255,100,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px;
+    margin: 0 auto 20px;
+    box-shadow: 0 0 32px rgba(0,255,100,0.12);
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #00cc55;
+    margin-bottom: 14px;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    line-height: 0.95;
+    color: #ffffff;
+    margin-bottom: 16px;
+  }
+
+  .hero-title span { color: #00ff66; }
+
+  .hero-sub {
+    font-size: 15px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.6;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  /* BARRA DE PROGRESSO */
+  .progress-wrap {
+    padding: 20px 32px 0;
+    flex-shrink: 0;
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+  }
+
+  .progress-count {
+    font-size: 11px;
+    font-weight: 700;
+    color: #00ff66;
+    letter-spacing: 1px;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00cc55, #00ff88);
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* CORPO DA PERGUNTA */
+  .pergunta-body {
+    padding: 28px 32px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pergunta-numero {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: #00cc55;
+    margin-bottom: 12px;
+  }
+
+  .pergunta-texto {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 38px;
+    line-height: 1.05;
+    color: #ffffff;
+    margin-bottom: 28px;
+  }
+
+  .pergunta-texto em {
+    color: #00ff66;
+    font-style: normal;
+  }
+
+  /* OPÇÕES */
+  .opcoes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .opcao {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .opcao:active, .opcao:hover {
+    border-color: rgba(0,255,100,0.4);
+    background: rgba(0,255,100,0.06);
+    transform: translateY(-1px);
+  }
+
+  .opcao.selecionada {
+    border-color: #00ff66;
+    background: rgba(0,255,100,0.1);
+  }
+
+  .opcao-letra {
+    width: 36px; height: 36px;
+    min-width: 36px;
+    border-radius: 50%;
+    background: rgba(0,255,100,0.08);
+    border: 1px solid rgba(0,255,100,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: #00ff66;
+    transition: all 0.2s;
+  }
+
+  .opcao.selecionada .opcao-letra {
+    background: #00ff66;
+    color: #000;
+    border-color: #00ff66;
+  }
+
+  .opcao-texto {
+    font-size: 15px;
+    color: rgba(255,255,255,0.75);
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  /* RODAPÉ DA PERGUNTA */
+  .pergunta-footer {
+    padding: 0 32px 32px;
+    flex-shrink: 0;
+  }
+
+  .hint {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 1px;
+    margin-top: 20px;
+  }
+
+  /* TELA DE RESULTADO */
+  .resultado-hero {
+    background: radial-gradient(ellipse at 50% 110%, rgba(0,220,80,0.2) 0%, transparent 65%), #0d0d0d;
+    padding: 48px 32px 32px;
+    text-align: center;
+  }
+
+  .resultado-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+  }
+
+  .resultado-perfil-nome {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: #00cc55;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .resultado-titulo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 46px;
+    line-height: 1;
+    color: #ffffff;
+    margin-bottom: 14px;
+  }
+
+  .resultado-titulo span { color: #00ff66; }
+
+  .resultado-desc {
+    font-size: 15px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.7;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  .resultado-body {
+    padding: 28px 32px;
+    flex: 1;
+  }
+
+  .solucao-card {
+    background: rgba(0,255,100,0.05);
+    border: 1px solid rgba(0,255,100,0.15);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .solucao-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #00cc55;
+    margin-bottom: 10px;
+  }
+
+  .solucao-texto {
+    font-size: 16px;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.6;
+    font-weight: 600;
+  }
+
+  .solucao-texto strong { color: #00ff66; }
+
+  /* BOTÃO CTA */
+  .btn-comprar {
+    display: block;
+    width: 100%;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #00ff66, #00cc44);
+    color: #000000;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-align: center;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 8px 32px rgba(0,255,100,0.25);
+    margin-bottom: 12px;
+  }
+
+  .btn-comprar:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 16px rgba(0,255,100,0.2);
+  }
+
+  .garantia {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.5px;
+    line-height: 1.6;
+  }
+
+  /* TELA DE LOADING */
+  .loading-tela {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    background: radial-gradient(ellipse at 50% 60%, rgba(0,220,80,0.15) 0%, transparent 65%), #0d0d0d;
+  }
+
+  .loading-mascot {
+    font-size: 64px;
+    margin-bottom: 24px;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  .loading-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: #ffffff;
+    margin-bottom: 8px;
+  }
+
+  .loading-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 32px;
+  }
+
+  .dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #00ff66;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 100% { opacity: 0.2; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-6px); }
+  }
+
+  /* BOTÃO INICIAR */
+  .btn-iniciar {
+    display: block;
+    width: calc(100% - 64px);
+    margin: 0 32px 32px;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #00ff66, #00cc44);
+    color: #000000;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(0,255,100,0.2);
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .btn-iniciar:active { transform: scale(0.98); }
+
+  /* MARCA RODAPÉ */
+  .marca {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.12);
+    padding: 0 32px 24px;
+    flex-shrink: 0;
+  }
+
+</style>
+</head>
+<body>
+<div class="quiz-container">
+
+  <!-- TELA 0: CAPA -->
+  <div class="tela ativa" id="tela-0">
+    <div class="hero" style="flex:1; justify-content: center; display: flex; flex-direction: column;">
+      <div class="mascot">🍀</div>
+      <div class="eyebrow">Quiz do Homem Trevo</div>
+      <div class="hero-title">POR QUE VOCÊ<br>NÃO <span>EMAGRECE?</span></div>
+      <div class="hero-sub">Responda 3 perguntas rápidas e descubra o que está travando o seu resultado.</div>
+    </div>
+    <button class="btn-iniciar" onclick="irPara(1)">🍀 Começar o quiz</button>
+    <div class="marca">@sortudoafiliado</div>
+  </div>
+
+  <!-- TELA 1: PERGUNTA 1 -->
+  <div class="tela" id="tela-1">
+    <div class="hero">
+      <div class="eyebrow">Quiz do Homem Trevo</div>
+      <div class="hero-title" style="font-size:36px;">Como está sua <span>fome</span> ao longo do dia?</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span class="progress-label">Progresso</span>
+        <span class="progress-count">1 de 3</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:33%"></div></div>
+    </div>
+    <div class="pergunta-body">
+      <div class="pergunta-numero">PERGUNTA 01</div>
+      <div class="opcoes">
+        <div class="opcao" onclick="selecionar(this, 1, 'A')">
+          <div class="opcao-letra">A</div>
+          <div class="opcao-texto">Fico com fome o tempo todo, mesmo depois de comer</div>
+        </div>
+        <div class="opcao" onclick="selecionar(this, 1, 'B')">
+          <div class="opcao-letra">B</div>
+          <div class="opcao-texto">Como pouco mas mesmo assim não emagreço</div>
+        </div>
+        <div class="opcao" onclick="selecionar(this, 1, 'C')">
+          <div class="opcao-letra">C</div>
+          <div class="opcao-texto">Tenho muita vontade de doce e carboidrato</div>
+        </div>
+        <div class="opcao" onclick="selecionar(this, 1, 'D')">
+          <div class="opcao-letra">D</div>
+          <div class="opcao-texto">Minha fome é normal mas falta disposição</div>
+        </div>
+      </div>
+    </div>
+    <div class="pergunta-footer">
+      <div class="hint">Toque na opção para avançar automaticamente</div>
+    </div>
+  </div>
+
+  <!-- TELA 2: PERGUNTA 2 -->
+  <div class="tela" id="tela-2">
+    <div class="hero">
+      <div class="eyebrow">Quiz do Homem Trevo</div>
+      <div class="hero-title" style="font-size:36px;">O que acontece quando você <span>tenta emagrecer?</span></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span class="progress-label">Progresso</span>
+        <span class="progress-count">2 de 3</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:66%"></div></div>
+    </div>
+    <div class="pergunta-body">
+      <div class="pergunta-numero">PERGUNTA 02</div>
+      <div class="opcoes">
+        <div class="opcao" onclick="selecionar(this, 2, 'A')">
+          <div class="opcao-letra">A</div>
+          <div class="opcao-texto">Consigo por uns dias, depois abandono tudo</div>
+        </div>
+        <div class="opcao" onclick="selecionar(this, 2, 'B')">
+          <div class="opcao-letra">B</div>
+          <div class="opcao-texto">Perco peso e logo recupero o dobro</div>
+        </div>
+        <div class="opcao" onclick="selecionar(this, 2, 'C')">
+          <div class="opcao-letra">C</div>
+          <div class="opcao-texto">Não consigo nem começar — falta motivação</div>
+        </div>
+        <div class="opcao" onclick="selecionar(this, 2, 'D')">
+          <div class="opcao-letra">D</div>
+          <div class="opcao-texto">Faço tudo certo mas a balança não move</div>
+        </div>
+      </div>
+    </div>
+    <div class="pergunta-footer">
+      <div class="hint">Toque na opção para avançar automaticamente</div>
+    </div>
+  </div>
+
+  <!-- TELA 3: PERGUNTA 3 -->
+  <div class="tela" id="tela-3">
+    <div class="hero">
+      <div class="eyebrow">Quiz do Homem Trevo</div>
+      <div class="hero-title" style="font-size:36px;">Como está sua <span>energia</span> no dia a dia?</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span class="progress-label">Progresso</span>
+        <span class="progress-count">3 de 3</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+    </div>
+    <div class="pergunta-body">
+      <div class="pergunta-numero">PERGUNTA 03</div>
+      <div class="opcoes">
+        <div class="opcao" onclick="selecionar(this, 3, 'A')">
+          <div class="opcao-letra">A</div>
+          <div class="opcao-texto">Acordo cansado(a) mesmo dormindo bastante</div>
+        </div>
+        <div class="opcao" onclick="selecionar(this, 3, 'B')">
+          <div class="opcao-letra">B</div>
+          <div class="opcao-texto">Fico com sono depois do almoço sempre</div>
+        </div>
+        <div class="opcao" onclick="selecionar(this, 3, 'C')">
+          <div class="opcao-letra">C</div>
+          <div class="opcao-texto">Sem energia para malhar ou me movimentar</div>
+        </div>
+        <div class="opcao" onclick="selecionar(this, 3, 'D')">
+          <div class="opcao-letra">D</div>
+          <div class="opcao-texto">Energia ok, mas o corpo não responde</div>
+        </div>
+      </div>
+    </div>
+    <div class="pergunta-footer">
+      <div class="hint">Toque na opção para ver seu resultado</div>
+    </div>
+  </div>
+
+  <!-- TELA LOADING -->
+  <div class="tela" id="tela-loading">
+    <div class="loading-tela">
+      <div class="loading-mascot">🍀</div>
+      <div class="loading-title">Analisando seu perfil...</div>
+      <div class="loading-sub">O Homem Trevo está calculando</div>
+      <div class="dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA RESULTADO -->
+  <div class="tela" id="tela-resultado">
+    <div class="resultado-hero">
+      <div class="resultado-icon" id="res-icon">🔥</div>
+      <div class="resultado-perfil-nome" id="res-perfil">Seu perfil</div>
+      <div class="resultado-titulo" id="res-titulo">TÍTULO</div>
+      <div class="resultado-desc" id="res-desc">Descrição</div>
+    </div>
+    <div class="resultado-body">
+      <div class="solucao-card">
+        <div class="solucao-label">✅ A solução do Homem Trevo</div>
+        <div class="solucao-texto" id="res-solucao">Solução personalizada</div>
+      </div>
+      <a 
+        class="btn-comprar"
+        href="https://ozenvitta.com/pvmon/?mcr=ADA25801425&fbclid=PAVERFWASgShBleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAac9dlWs_n1wGcqSCwws5Hl358nUn0eQApmYQVTMu1oH5jHcCfLA5jXuTDwNuA_aem_Tu9nWpWITq1Aua1WB39ITQ"
+        target="_blank"
+        rel="noopener"
+      >
+        🛒 Quero o Ozenvita agora
+      </a>
+      <div class="garantia">🔒 Compra segura &nbsp;·&nbsp; Resultado garantido &nbsp;·&nbsp; Suporte completo</div>
+    </div>
+    <div class="marca">@sortudoafiliado</div>
+  </div>
+
+</div>
+
+<script>
+  const respostas = {};
+
+  const perfis = {
+    A: {
+      icon: '🔥',
+      perfil: 'PERFIL FOME INTENSA',
+      titulo: 'SEU METABOLISMO<br>ESTÁ EM <span>COLAPSO</span>',
+      desc: 'Seu corpo manda sinais de fome constante porque o metabolismo está desregulado. Não é falta de força de vontade — é biologia.',
+      solucao: 'O <strong>Ozenvita</strong> age diretamente no controle do apetite e na regulação metabólica, reduzindo a fome compulsiva de forma natural e sustentável.'
+    },
+    B: {
+      icon: '🔄',
+      perfil: 'PERFIL SANFONA',
+      titulo: 'VOCÊ ESTÁ PRESO NO<br><span>CICLO VICIOSO</span>',
+      desc: 'Perder e ganhar peso repetidamente é sinal de que seu corpo entrou em modo de sobrevivência. A dieta sozinha não resolve.',
+      solucao: 'O <strong>Ozenvita</strong> estabiliza o metabolismo para que você queime gordura de forma consistente, sem o efeito sanfona que sabota seu progresso.'
+    },
+    C: {
+      icon: '😴',
+      perfil: 'PERFIL ENERGIA ZERO',
+      titulo: 'SEU CORPO ESTÁ<br><span>PEDINDO SOCORRO</span>',
+      desc: 'A falta de energia e os desejos por doce são sintomas de que seu organismo está desequilibrado. Força de vontade não é suficiente.',
+      solucao: 'O <strong>Ozenvita</strong> repõe a energia que falta, reduz a compulsão por açúcar e desperta o seu metabolismo para queimar gordura com mais eficiência.'
+    },
+    D: {
+      icon: '🧱',
+      perfil: 'PERFIL METABOLISMO TRAVADO',
+      titulo: 'VOCÊ FAZ TUDO CERTO<br>MAS O RESULTADO <span>NÃO VEM</span>',
+      desc: 'Fazer dieta e exercício sem resultado é o sinal mais claro de metabolismo travado. Seu corpo resistiu e parou de responder.',
+      solucao: 'O <strong>Ozenvita</strong> age na raiz do problema: destrava o metabolismo, melhora a resposta do corpo e faz os seus esforços finalmente surtirem efeito.'
+    }
+  };
+
+  function irPara(n) {
+    document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+    const alvo = document.getElementById('tela-' + n);
+    if (alvo) {
+      alvo.classList.add('ativa');
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function selecionar(el, pergunta, letra) {
+    // Feedback visual rápido
+    const container = el.closest('.opcoes');
+    container.querySelectorAll('.opcao').forEach(o => o.classList.remove('selecionada'));
+    el.classList.add('selecionada');
+
+    respostas[pergunta] = letra;
+
+    // Avança após 500ms
+    setTimeout(() => {
+      if (pergunta < 3) {
+        irPara(pergunta + 1);
+      } else {
+        irPara('loading');
+        setTimeout(() => mostrarResultado(), 2200);
+      }
+    }, 500);
+  }
+
+  function mostrarResultado() {
+    // Calcula letra mais votada
+    const contagem = { A: 0, B: 0, C: 0, D: 0 };
+    Object.values(respostas).forEach(l => contagem[l]++);
+    const letraDominante = Object.entries(contagem).sort((a,b) => b[1]-a[1])[0][0];
+
+    const p = perfis[letraDominante];
+    document.getElementById('res-icon').textContent = p.icon;
+    document.getElementById('res-perfil').textContent = p.perfil;
+    document.getElementById('res-titulo').innerHTML = p.titulo;
+    document.getElementById('res-desc').textContent = p.desc;
+    document.getElementById('res-solucao').innerHTML = p.solucao;
+
+    irPara('resultado');
+  }
+</script>
+</body>
+</html>
